@@ -12,6 +12,7 @@ function fsReadFilePromisified(filePath, encoding) {
     });
 }
 
+/// promise can either be in pending state, resolved state, or rejected state.
 fsReadFilePromisified("dummy.txt", "utf-8")
     /// sab shi rha toh .then call hoga.
     .then((data) => console.log(data))
