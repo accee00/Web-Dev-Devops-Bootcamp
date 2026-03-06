@@ -32,7 +32,7 @@ program
 program
     .command("count-lines")
     .description("Count the no of lines in a file.")
-    .argument("<file>", "file to count")
+    .argument("<file>", "file to count no of lines")
     .action((file) => {
         fs.readFile(file, "utf-8", (error, data) => {
             if (error) {
@@ -53,6 +53,31 @@ program
 
 program
     .command("count-vowels")
-    .description("")
+    .description("Count the no of vowels in a file.")
+    .argument("<file>", "file to check for vowels")
+    .action((file) => {
+        fs.readFile(file, "utf-8", (error, data) => {
+            if (error) {
+                console.log(error);
+                return;
+            }
+
+            let count = 0;
+
+            for (const char of data.toLowerCase()) {
+                if (
+                    char === "a" ||
+                    char === "e" ||
+                    char === "i" ||
+                    char === "o" ||
+                    char === "u"
+                ) {
+                    count++;
+                }
+            }
+
+            console.log(`There are ${count} vowels in ${file}`);
+        });
+    });
 
 program.parse(process.argv);
