@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+
+    <script>
+        async function add() {
+            const a = parseInt(document.getElementById("first-num").value);
+            const b = parseInt(document.getElementById("sec-num").value);
+            // const result = a + b;
+            // document.getElementById("answer").innerHTML = "<h1>" + result + "</h1>";
+
+            const res = await fetch(`http://localhost:3000/sum?a=${a}&b=${b}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    a: a,
+                    b: b,
+                })
+            });
+
+            // const res = await fetch(`http://localhost:3000/sum?a=${a}&b=${b}`);
+            // const json = await res.json();
+
+            document.getElementById("answer").innerHTML = `<h1>${json.ans}</h1>`;
+        }
+    </script>
+</head>
+
+<body>
+    <input id="first-num" placeholder="Enter first number:" type="text">
+    <input id="sec-num" placeholder="Enter second number:" type="text">
+
+    <button onclick=add() id="sum">Sum</button>
+    <button onclick="" id="sub">Sub</button>
+    <button onclick="" id="mult">Multiply</button>
+    <button onclick="" id="divi">Divide</button>
+
+    <div id="answer"></div>
+</body>
+
+</html>
