@@ -13,19 +13,47 @@
             // const result = a + b;
             // document.getElementById("answer").innerHTML = "<h1>" + result + "</h1>";
 
-            const res = await fetch(`http://localhost:3000/sum?a=${a}&b=${b}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    a: a,
-                    b: b,
-                })
-            });
+            // const res = await fetch(`http://localhost:3000/sum?a=${a}&b=${b}`, {
+            //     method: "POST",
+            //     headers: {
+            //         "Content-Type": "application/json"
+            //     },
+            //     body: JSON.stringify({
+            //         a: a,
+            //         b: b,
+            //     })
+            // });
 
-            // const res = await fetch(`http://localhost:3000/sum?a=${a}&b=${b}`);
-            // const json = await res.json();
+            const res = await fetch(`http://localhost:3000/sum?a=${a}&b=${b}`);
+            const json = await res.json();
+
+            document.getElementById("answer").innerHTML = `<h1>${json.ans}</h1>`;
+        }
+        async function sub() {
+            const a = parseInt(document.getElementById("first-num").value);
+            const b = parseInt(document.getElementById("sec-num").value);
+
+            const res = await fetch(`http://localhost:3000/sub?a=${a}&b=${b}`);
+            const json = await res.json();
+
+            document.getElementById("answer").innerHTML = `<h1>${json.ans}</h1>`;
+        }
+        async function multiply() {
+            const a = parseInt(document.getElementById("first-num").value);
+            const b = parseInt(document.getElementById("sec-num").value);
+
+            const res = await fetch(`http://localhost:3000/multiply?a=${a}&b=${b}`);
+            const json = await res.json();
+
+            document.getElementById("answer").innerHTML = `<h1>${json.ans}</h1>`;
+        }
+        async function divide() {
+            const a = parseInt(document.getElementById("first-num").value);
+            const b = parseInt(document.getElementById("sec-num").value);
+
+
+            const res = await fetch(`http://localhost:3000/divide?a=${a}&b=${b}`);
+            const json = await res.json();
 
             document.getElementById("answer").innerHTML = `<h1>${json.ans}</h1>`;
         }
@@ -37,9 +65,9 @@
     <input id="sec-num" placeholder="Enter second number:" type="text">
 
     <button onclick=add() id="sum">Sum</button>
-    <button onclick="" id="sub">Sub</button>
-    <button onclick="" id="mult">Multiply</button>
-    <button onclick="" id="divi">Divide</button>
+    <button onclick=sub() id="sub">Sub</button>
+    <button onclick=multiply() id="mult">Multiply</button>
+    <button onclick=divide() id="divi">Divide</button>
 
     <div id="answer"></div>
 </body>
