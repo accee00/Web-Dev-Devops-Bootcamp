@@ -64,16 +64,46 @@ app.post("/signin", async (req, res) => {
 });
 
 app.post("/organization", authMiddleware, (req, res) => {
-    if (req.userId) {
-        let id = req.userId
-        return res.json({
-            id
-        });
-    } else {
-        return res.json({
-            msg: "no user id",
+    const userId = req.userId;
+    const { name, description } = req.body;
+    if (!name || !description) {
+        return res.status(400).json({
+            msg: "Both feilds are required."
         });
     }
+    organizations.push({
+        id: ORG_ID++,
+        name: name,
+        description: description,
+        admin: userId,
+        memebers: []
+    });
+    return res.json({
+        msg: "Org created.",
+        id: ORG_ID
+    })
+});
+
+app.post("/add-member-to-organization", authMiddleware, (req, res) => {
+    const { orgId, username } = req.body;
+    const userId = req.userId;
+
+    const doesOrgExist = organizations.find(org => org.id === orgId);
+    if (!doesOrgExist || doesOrgExist.admin !== userId) {
+        return res.status(411).json({
+            msg: "This org don't exist or u are not admin of this org."
+        })
+    }
+    const user = users.find(user => user.username === username);
+    if (!user) {
+        return res.status(411).json({
+            msg: "No user with this user name present."
+        })
+    }
+    doesOrgExist.memebers.push(user.id);
+    return res.json({
+        msg: "new member added."
+    })
 });
 
 
@@ -83,6 +113,9 @@ app.post("/organization", authMiddleware, (req, res) => {
 
 
 
+app.get("/organization", authMiddleware, (req, res) => {
+
+});
 app.get("/boards", (req, res) => {
 
 });
@@ -102,6 +135,8 @@ app.put("/issue", (req, res) => {
 
 
 app.delete("/members", (req, res) => {
+    const userId = req.userId;
+    const { orgId, memberId } = req.body;
 
 });
 
