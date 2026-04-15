@@ -94,13 +94,13 @@ app.post("/add-member-to-organization", authMiddleware, (req, res) => {
 
     const doesOrgExist = organizations.find(org => org.id === orgId);
     if (!doesOrgExist || doesOrgExist.admin !== userId) {
-        return res.status(411).json({
+        return res.status(404).json({
             msg: "This org don't exist or u are not admin of this org."
         })
     }
     const user = users.find(user => user.username === username);
     if (!user) {
-        return res.status(411).json({
+        return res.status(404).json({
             msg: "No user with this user name present."
         })
     }
@@ -115,14 +115,14 @@ app.post("/boards", authMiddleware, (req, res) => {
     const { title, orgId } = req.body;
 
     if (!title || !orgId) {
-        return res.json({
+        return res.status(400).json({
             msg: "title or org id is missing."
         });
     }
     const organization = organizations.find(org => org.id === orgId);
 
     if (!organization || organization.admin !== userId) {
-        return res.status(411).json({
+        return res.status(404).json({
             message: "Either this org doesnt exist or you are not an admin of this org"
         });
     }
@@ -139,7 +139,51 @@ app.post("/boards", authMiddleware, (req, res) => {
 });
 
 app.post("/issue", authMiddleware, (req, res) => {
+    const userId = req.userId;
+    const { title, issueState } = req.body;
+    const { boardId } = req.query;
+    if (!title || !issueState) {
+        res.status(400).json({
+            msg: "Both title and issueState is required."
+        });
+        return;
+    }
+    const board = boards.find(board => board.id === parseInt(boardId));
+    if (!board) {
+        res.status(404).json({
+            msg: "Board not found."
+        });
+        return;
+    }
 
+    /// Check if user in present in that org. 
+    const organization = organizations.find(org => org.id === board.organization);
+    if (!organization) {
+        res.status(404).json({
+            msg: "org not found."
+        });
+        return;
+    }
+
+    const isMemeberOrAdmin = organization.members.includes(userId) || organization.admin === userId;
+    if (!isMemeberOrAdmin) {
+        res.status(403).json({
+            msg: "You are not part of this org."
+        });
+        return;
+    }
+
+    issues.push({
+        id: ISSUE_ID++,
+        title: title,
+        issueState: issueState,
+        board: board.id
+    });
+
+    return res.status(201).json({
+        msg: "issue created ",
+        id: ISSUE_ID--
+    });
 });
 
 app.get("/organization", authMiddleware, (req, res) => {
@@ -181,7 +225,7 @@ app.get("/boards", authMiddleware, (req, res) => {
 
     const organization = organizations.find(org => org.id === parseInt(parseInt));
     if (!organization || organization.admin !== userId) {
-        return res.status(411).json({
+        return res.status(404).json({
             message: "Either this org doesnt exist or you are not an admin of this org"
         })
     }
@@ -193,16 +237,130 @@ app.get("/boards", authMiddleware, (req, res) => {
 });
 
 
-app.get("/issues", (req, res) => {
+app.get("/issues", authMiddleware, (req, res) => {
+    const userId = req.userId;
+    const { boardId } = req.query;
 
+    if (!boardId) {
+        return res.status(400).json({
+            msg: "board id is missing."
+        });
+    }
+
+    const board = boards.find(b => b.id === parseInt(boardId));
+    if (!board) {
+        return res.status(404).json({
+            msg: "board not found"
+        });
+    }
+
+    const organization = organizations.find(org => org.id === board.organization);
+    if (!organization) {
+        return res.status(404).json({
+            msg: "org not found"
+        });
+    }
+
+    const isMemberOrAdmin =
+        organization.members.includes(userId)
+        || organization.admin === userId;
+
+    if (!isMemberOrAdmin) {
+        return res.status(403).json({
+            msg: "You are not part of this org."
+        });
+    }
+
+    const boardIssues = issues.filter(iss => iss.boardId === board.id);
+
+    return res.status(200).json({
+        issues: boardIssues
+    });
 });
 
-app.get("/members", (req, res) => {
+app.get("/members", authMiddleware, (req, res) => {
+    const userId = req.userId;
+    const { orgId } = req.query;
+    if (!orgId) {
+        return res.status(400).json({
+            msg: "Org id is required."
+        });
+    }
+    const organization = organizations.find(org => org.id === parseInt(orgId));
+    if (!organization) {
+        return res.status(404).json({
+            msg: "org not found"
+        });
+    }
+    const isMemeberOrAdmin = organization.members.includes(userId) ||
+        organization.admin === userId;
 
+    if (!isMemeberOrAdmin) {
+        return res.status(403).json({
+            msg: "You are not part of this org."
+        });
+    }
+    const members = organization.members.map(memberId => {
+        const user = users.find(u => u.id === memberId);
+        return {
+            id: user.id,
+            username: user.username
+        };
+    });
+
+    return res.status(200).json({
+        members
+    });
 });
 
-app.put("/issue", (req, res) => {
+app.put("/issue", authMiddleware, (req, res) => {
+    const userId = req.userId;
+    const { issueId } = req.query;
+    const { issueState } = req.body;
 
+    if (!issueId || !issueState) {
+        return res.status(400).json({
+            msg: "issueId and issueState are required"
+        });
+    }
+
+    const issue = issues.find(i => i.id === parseInt(issueId));
+    if (!issue) {
+        return res.status(404).json({
+            msg: "issue not found"
+        });
+    }
+
+    const board = boards.find(b => b.id === issue.boardId);
+    if (!board) {
+        return res.status(404).json({
+            msg: "board not found"
+        });
+    }
+
+    const organization = organizations.find(org => org.id === board.organization);
+    if (!organization) {
+        return res.status(404).json({
+            msg: "org not found"
+        });
+    }
+
+    const isMemberOrAdmin =
+        organization.members.includes(userId) ||
+        organization.admin === userId;
+
+    if (!isMemberOrAdmin) {
+        return res.status(403).json({
+            msg: "You are not part of this org."
+        });
+    }
+
+    issue.issueState = issueState;
+
+    return res.status(200).json({
+        msg: "issue updated",
+        issue
+    });
 });
 
 
