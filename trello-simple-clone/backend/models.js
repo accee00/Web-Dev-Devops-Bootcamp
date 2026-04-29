@@ -63,3 +63,5 @@ const User = mongoose.model("user", userSchema);
 const Organization = mongoose.model("organization", orgSchema);
 const Board = mongoose.model("board", boardSchema);
 const Issue = mongoose.model("issue", issueSchema);
+
+module.exports = { User, Organization, Board, Issue };

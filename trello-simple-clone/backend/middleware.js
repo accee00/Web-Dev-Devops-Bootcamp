@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const { User } = require("./models.js");
 
-function authMiddleware(req, res, next) {
+async function authMiddleware(req, res, next) {
     const token = req.header("Authorization");
     console.log(token);
     if (!token) {
@@ -12,7 +13,9 @@ function authMiddleware(req, res, next) {
     const decoded = jwt.verify(token, "23890239kdjsj");
     const userId = decoded.userId;
 
-    if (userId) {
+    const doesUserExist = await User.findById(userId);
+
+    if (doesUserExist) {
         req.userId = userId;
         next();
     } else {
