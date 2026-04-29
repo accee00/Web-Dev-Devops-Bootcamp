@@ -67,10 +67,16 @@ app.post("/signin", async (req, res) => {
 
     const doesUserExist = await User.findOne({ username });
 
+    if (!doesUserExist) {
+        res.status(401).json({
+            msg: "Invalid credentials"
+        })
+        return;
+    }
     const isPassCorrect = await bcrypt.compare(password, doesUserExist.password);
 
 
-    if (!isPassCorrect || !doesUserExist) {
+    if (!isPassCorrect) {
         res.status(401).json({
             msg: "Invalid credentials"
         })
@@ -334,7 +340,7 @@ app.get("/boards", authMiddleware, async (req, res) => {
 });
 
 
-app.get("/issues:/boardId", authMiddleware, async (req, res) => {
+app.get("/issues/:boardId", authMiddleware, async (req, res) => {
     const userId = req.userId;
     const { boardId } = req.params;
     if (!boardId) {
@@ -383,7 +389,7 @@ app.get("/issues:/boardId", authMiddleware, async (req, res) => {
     });
 });
 
-app.get("/members", authMiddleware, (req, res) => {
+app.get("/members", authMiddleware, async (req, res) => {
     const userId = req.userId;
     const { orgId } = req.query;
     if (!orgId) {
@@ -474,8 +480,6 @@ app.put("/issue", authMiddleware, async (req, res) => {
 });
 
 
-const mongoose = require("mongoose");
-
 app.delete("/members", authMiddleware, async (req, res) => {
     const userId = req.userId;
     const { orgId, memberUserName } = req.body;
@@ -513,12 +517,6 @@ app.delete("/members", authMiddleware, async (req, res) => {
     }
 
 
-    if (org.admin.toString() === userId) {
-        res.status(400).json({
-            msg: "Cannot remove organization admin"
-        });
-        return;
-    }
 
     const isMember = org.members.includes(userId);
     if (!isMember) {
