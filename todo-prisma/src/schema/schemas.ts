@@ -16,7 +16,9 @@ export const todoSchema = z.object({
   description: z.string().trim(),
   isCompleted: z.boolean().optional(),
 });
+export const updateTodoSchema = todoSchema.partial();
 
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type SignInInput = z.infer<typeof signInSchema>;
 export type TodoInput = z.infer<typeof todoSchema>;
+export type TodoUpdate = z.infer<typeof updateTodoSchema>;

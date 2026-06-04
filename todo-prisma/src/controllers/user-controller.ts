@@ -3,13 +3,13 @@ import type { Request, Response } from "express";
 import { signUpSchema, signInSchema } from "../schema/schemas.ts";
 import type { SignUpInput, SignInInput } from "../schema/schemas.ts";
 import { asyncHandler } from "../utils/asyncHandler.ts";
-
+import jwt from "jsonwebtoken";
 const signupUser = asyncHandler(async (req: Request, res: Response) => {
   const result = signUpSchema.safeParse(req.body);
 
   if (!result.success) {
     return res.status(400).json({
-      message: result.error.issues[0]?.message,
+      msg: result.error.issues[0]?.message,
     });
   }
   const data: SignUpInput = result.data;
@@ -40,9 +40,10 @@ const signInUser = asyncHandler(async (req: Request, res: Response) => {
 
   if (!result.success) {
     return res.status(400).json({
-      message: result.error.issues[0]?.message,
+      msg: result.error.issues[0]?.message,
     });
   }
+
   const data: SignInInput = result.data;
 
   const user = await prisma.user.findFirst({
@@ -64,6 +65,13 @@ const signInUser = asyncHandler(async (req: Request, res: Response) => {
     return res.status(403).json({ msg: "Invalid credentials." });
   }
 
-  return res.status(200).json(user);
+  const token = jwt.sign(
+    {
+      id: user.id,
+    },
+    "239092390902390923",
+  );
+  return res.status(200).json({ user, token });
 });
+
 export { signupUser, signInUser };
